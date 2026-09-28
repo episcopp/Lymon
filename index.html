@@ -5,8 +5,8 @@
 <style>
 :root{--tx:#fff;--t2:rgba(255,255,255,.62);--gl:rgba(255,255,255,.1);--tk:rgba(255,255,255,.3);--sh:#2b3654;--bg:linear-gradient(180deg,#1f3468 0%,#47597f 40%,#6c7583 64%,#946f5b 100%);--bc:#1b2540;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 :root[data-theme="dark"]{--tx:#fff;--t2:rgba(255,255,255,.6);--gl:rgba(255,255,255,.09);--tk:rgba(255,255,255,.22);--sh:#262b36;--bg:linear-gradient(150deg,#14161d 0%,#262b38 32%,#3d3f45 58%,#5a4a3d 82%,#6f4f39 100%);--bc:#14161d}
-html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bc)}
-body{margin:0;min-height:100vh;background:var(--bg) fixed;color:var(--tx);font:500 16px/1.3 'Inter Tight',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bc);overscroll-behavior-y:none}
+body{margin:0;min-height:100vh;background:var(--bg);background-repeat:no-repeat;background-size:100% 100%;color:var(--tx);font:500 16px/1.3 'Inter Tight',system-ui,-apple-system,'Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
 .app{max-width:480px;margin:0 auto;padding:14px 22px 110px 16px}
 .top{display:flex;align-items:center;justify-content:space-between;min-height:44px}
 .top small{font-size:15px;opacity:.85}
@@ -25,6 +25,10 @@ h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:18px 0 6px;font-
 .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.hd b{font-size:20px;font-weight:600}
 .all{border:0;font:inherit;font-size:14px;background:var(--gl);color:var(--tx);border-radius:999px;padding:7px 14px}
 .r{display:flex;align-items:center;gap:12px;padding:9px 0}
+.rb{width:100%;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.cg{border-bottom:1px solid var(--tk)}.cg:last-child{border-bottom:0}
+.sub{margin:0 0 6px 56px;padding-left:12px;border-left:2px solid var(--tk)}
+.sub .r{padding:7px 0}
 .r i{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:20px}
 .r .m{flex:1;min-width:0}.r .m b{display:block;font-weight:500;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .r s{display:block;text-decoration:none;font-size:13px;color:var(--t2);margin-top:2px}
@@ -50,7 +54,7 @@ h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:18px 0 6px;font-
 </style></head><body><div class="app" id="app"></div><div id="ov"></div>
 <script>
 const S=localStorage,ld=k=>{try{return JSON.parse(S.getItem(k))}catch(e){return null}},sv=(k,v)=>{try{S.setItem(k,JSON.stringify(v))}catch(e){}};
-let DB=ld('lm_tx')||[],V='h',RG=null,SL=0,PK={},DM=false,MSG='';
+let DB=ld('lm_tx')||[],V='h',RG=null,SL=0,EXP=null,PK={},DM=false,MSG='';
 const MO=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'],MN=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 const DEF=['Інше','⋯','#7a8ea0'],CT={'Продукти та супермаркети':['Продукти та супермаркети','🛒','#2fb673'],'Кафе та ресторани':['Кафе та ресторани','🍽️','#f08a24'],'Авіаквитки':['Подорожі','✈️','#1fb58f'],'Транспорт':['Транспорт','🚌','#5b7cfa'],'Краса та догляд':['Краса та догляд','💅','#d65db1'],'Спорт':['Спорт','🏋️','#e5534b'],'Кіно та театри':['Кіно та театри','🎬','#8b5cf6'],'Побутова техніка':['Техніка та зв’язок','📱','#3aa7d9'],'Інші витрати':DEF,'Комісії':['Комісії','%','#8f98a3'],'Поповнення':['Поповнення картки','⬇️','#2fb673'],'Обмін валюти':['Обмін валюти','💱','#c9a227'],'Грошові перекази':['На свої картки','💳','#e6399b']};
 const kd=x=>x.c=='Обмін валюти'||x.c=='Грошові перекази'||/власними рахунками/.test(x.d)?'t':x.a>0?'i':'e';
@@ -105,11 +109,12 @@ const CD=[['Витрати','↗','#ff7a1a','e'],['На свої картки','
 function agg(k){const{s,e}=rng(),m={};let tot=0,n=0;
  DB.filter(x=>!x.p&&x.t.slice(0,10)>=s&&x.t.slice(0,10)<=e).forEach(x=>{
   const K=kd(x);let v=0;if(k=='e'&&K=='e')v=x.a;else if(k=='t'&&K=='t')v=x.a;else if(k=='i'&&K=='i')v=x.a;else if(k=='c'&&K=='e'&&x.cb)v=x.cb;else return;
-  const c=ci(x),o=m[c[0]]||(m[c[0]]={c,v:0,n:0});o.v+=v;o.n++;tot+=v;n++});
+  const c=ci(x),o=m[c[0]]||(m[c[0]]={c,v:0,n:0,tx:[]});o.v+=v;o.n++;o.tx.push(x);tot+=v;n++});
  return{m:Object.values(m).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v)),tot,n}}
 function lst(){const k=CD[SL][3],a=agg(k),T=a.m.reduce((s,o)=>s+Math.abs(o.v),0)||1;
- return a.m.map(o=>`<div class=r><i style="background:${o.c[2]}44">${o.c[1]}</i><div class=m><b>${o.c[0]}</b><s>${o.n} ${pl(o.n)}</s></div><div class=am><b class="${o.v>0?'g':''}">${f(o.v)}</b><s>${Math.round(Math.abs(o.v)/T*100)}%</s></div></div>`).join('')||'<div class=em>Немає даних за період</div>'}
-function sc(el){const i=Math.round(el.scrollLeft/(el.firstChild.offsetWidth+12));if(i!=SL){SL=i;$('#ls').innerHTML=lst();$('#dt').innerHTML=CD.map((_,j)=>`<u class="${j==SL?'on':''}"></u>`).join('')}}
+ return a.m.map(o=>`<div class=cg><button class="r rb" onclick="tgl('${o.c[0].replace(/'/g,"\\'")}')"><i style="background:${o.c[2]}44">${o.c[1]}</i><div class=m><b>${o.c[0]}</b><s>${o.n} ${pl(o.n)}</s></div><div class=am><b class="${o.v>0?'g':''}">${f(o.v)}</b><s>${Math.round(Math.abs(o.v)/T*100)}%</s></div></button>${EXP==o.c[0]?`<div class=sub>${o.tx.slice().sort((a,b)=>b.t.localeCompare(a.t)).map(row).join('')}</div>`:''}</div>`).join('')||'<div class=em>Немає даних за період</div>'}
+function tgl(n){EXP=EXP==n?null:n;$('#ls').innerHTML=lst()}
+function sc(el){const i=Math.round(el.scrollLeft/(el.firstChild.offsetWidth+12));if(i!=SL){SL=i;EXP=null;$('#ls').innerHTML=lst();$('#dt').innerHTML=CD.map((_,j)=>`<u class="${j==SL?'on':''}"></u>`).join('')}}
 const $=s=>document.querySelector(s);
 const LOGO='<div class=lg><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20" stroke="#111" stroke-width="5" fill="none"/></svg>Raiffeisen Bank</div>';
 function R(){
@@ -123,7 +128,7 @@ function R(){
  else if(V=='a'){let d='';h=bar('Усі операції')+'<div class=tick></div>'+l.map(x=>{const k=x.t.slice(0,10),t=k!=d?`<div class=dh>${+k.slice(8)} ${MO[k.slice(5,7)-1]}</div>`:'';d=k;return t+row(x)}).join('')}
  else{h=`<div class=top><button class=ib onclick="go('h')" aria-label="Назад">←</button><span><button class=ib onclick="th()" aria-label="Тема">◐</button></span></div><div class=bk>Статистика</div><div style="display:flex;align-items:center;gap:10px;color:var(--t2)">${rlab()}<button class=ib onclick="opc()" aria-label="Календар" style="width:34px;height:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 9.5h17M8 3v3.5M16 3v3.5"/></svg></button></div><div class=tick></div><div class=car onscroll="sc(this)">${CD.map(c=>{const a=agg(c[3]),v=c[3]=='e'?-a.tot:a.tot,dn=rng().s?Math.round((new Date(rng().e)-new Date(rng().s))/864e5)+1:0;return`<div class=cd><div class=ci style="background:${c[2]}">${c[1]}</div><p>${c[0]}</p><h2>${f(c[3]=='i'||c[3]=='c'?Math.abs(v):v)}</h2><div class=bx>Усього ${a.n} ${pl(a.n)}</div><div class=tl><div class=bx><b>${a.m.length}</b><span>Категорій</span></div><div class=bx><b>${dn}</b><span>Днів</span></div></div></div>`}).join('')}</div><div class=dots id=dt>${CD.map((_,j)=>`<u class="${j==SL?'on':''}"></u>`).join('')}</div><div class=hd style="margin-top:8px"><b>Категорії</b></div><div id=ls>${lst()}</div>`}
  a.innerHTML=h}
-function go(v){V=v;MSG='';SL=0;scrollTo(0,0);R()}
+function go(v){V=v;MSG='';SL=0;EXP=null;scrollTo(0,0);R()}
 function th(){const c=document.documentElement,dk=c.dataset.theme?c.dataset.theme=='dark':matchMedia('(prefers-color-scheme:dark)').matches;c.dataset.theme=dk?'light':'dark';try{S.setItem('lm_th',c.dataset.theme)}catch(e){}}
 function opc(){const ds=DB.map(x=>x.t.slice(0,10)).sort();if(!ds.length)return;const r=rng();PK={s:r.s,e:r.e};
  const[ya,ma]=ds[0].split('-').map(Number),[yb,mb]=ds[ds.length-1].split('-').map(Number),n=(yb-ya)*12+mb-ma;let h='';

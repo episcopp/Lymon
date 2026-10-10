@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-10-3"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -43,10 +43,10 @@ h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:18px 0 6px;font-
 .r s{display:block;text-decoration:none;font-size:13px;color:var(--t2);margin-top:2px}
 .am{text-align:right;white-space:nowrap}.am b{font-weight:600}.g{color:#25c05a}
 .dh{font-size:14px;color:var(--t2);margin:16px 0 2px}
-.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom,0px));background:#111c;color:#fff;border-radius:999px;padding:15px 24px;font-weight:600;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);-webkit-mask-image:-webkit-radial-gradient(white,black);white-space:nowrap;box-shadow:0 10px 30px -8px #0008}
-.br .fab{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom,0px));background:#111c;color:#fff;border-radius:999px;padding:11px 20px;font-size:14px;font-weight:600;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);white-space:nowrap;box-shadow:0 10px 30px -8px #0008}
+.br .fab{bottom:calc(44px + env(safe-area-inset-bottom,0px))}
 .br .go{bottom:calc(56px + env(safe-area-inset-bottom,0px))}
-.br .app{padding-bottom:130px}
+.br .app{padding-bottom:110px}
 .car{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:12px -16px 0;padding:0 16px;scrollbar-width:none}
 .cd{flex:0 0 88%;scroll-snap-align:center;background:var(--gl);border-radius:26px;padding:20px;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
 .cd .ci{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:24px;color:#fff;font-weight:700}
@@ -66,6 +66,14 @@ h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:18px 0 6px;font-
 .em{padding:26px 6px;text-align:center;color:var(--t2)}
 </style></head><body><div id="scroll"><div class="app" id="app"></div></div><div id="ov"></div>
 <script>
+(function(){try{
+ if(sessionStorage.getItem('lm_bc'))return;
+ sessionStorage.setItem('lm_bc','1');
+ fetch(location.href,{cache:'no-store'}).then(r=>r.text()).then(t=>{
+  const m=t.match(/data-build="([^"]+)"/);
+  if(m&&m[1]&&m[1]!==document.documentElement.dataset.build)location.reload()
+ }).catch(()=>{})
+}catch(e){}})();
 const S=localStorage,ld=k=>{try{return JSON.parse(S.getItem(k))}catch(e){return null}},sv=(k,v)=>{try{S.setItem(k,JSON.stringify(v))}catch(e){}};
 let DB=ld('lm_tx')||[],V='h',RG=null,SL=0,EXP=null,PK={},DM=false,MSG='',CUR=ld('lm_cur')||'EUR',RATE=ld('lm_rate')||{UAH:48,USD:0.93};
 const SYM={EUR:'€',UAH:'₴',USD:'$'};
@@ -232,4 +240,3 @@ if(!(window.navigator.standalone||matchMedia('(display-mode:standalone)').matche
 R();
 if(Date.now()-(+ld('lm_rate_ts')||0)>36e5)fetchRate();
 </script></body></html>
-

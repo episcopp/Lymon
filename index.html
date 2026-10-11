@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-11-2"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-11-3"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -66,24 +66,24 @@ h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:18px 0 6px;font-
 .em{padding:26px 6px;text-align:center;color:var(--t2)}
 </style></head><body><div id="scroll"><div class="app" id="app"></div></div><div id="ov"></div>
 <script>
-(function(){try{
- if(sessionStorage.getItem('lm_bc'))return;
- sessionStorage.setItem('lm_bc','1');
+(function(){function chk(){try{
  fetch(location.href,{cache:'no-store'}).then(r=>r.text()).then(t=>{
   const m=t.match(/data-build="([^"]+)"/);
   if(m&&m[1]&&m[1]!==document.documentElement.dataset.build)location.reload()
  }).catch(()=>{})
-}catch(e){}})();
+}catch(e){}}
+chk();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState=='visible')chk()});})();
 const S=localStorage,ld=k=>{try{return JSON.parse(S.getItem(k))}catch(e){return null}},sv=(k,v)=>{try{S.setItem(k,JSON.stringify(v))}catch(e){}};
 let DB=ld('lm_tx')||[],V='h',RG=null,SL=0,EXP=null,PK={},DM=false,MSG='',CUR=ld('lm_cur')||'EUR',RATE=ld('lm_rate')||{UAH:50.3,USD:1.12};
 const SYM={EUR:'€',UAH:'₴',USD:'$'};
 const BK={raif:{n:'Райф картка',bg:'linear-gradient(135deg,#ffe600,#ffd400 60%,#f5c800)',tc:'#111',l:'Raiffeisen Bank',ic:'<svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="5" fill="none"/></svg>'},mono:{n:'Чорна картка',bg:'linear-gradient(135deg,#2a2a2a,#050505)',tc:'#fff',l:'monobank',ic:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>'},privat:{n:'Приват картка',bg:'linear-gradient(135deg,#5ecb3a,#237a17)',tc:'#fff',l:'Приват24',ic:'<svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'},revolut:{n:'Revolut картка',bg:'linear-gradient(135deg,#1c1c3c,#3a1a5c 55%,#0d0d20)',tc:'#fff',l:'Revolut',ic:'<svg viewBox="0 0 24 24"><path d="M6 4l10 8-10 8" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'}};
 let CARDS=ld('lm_cards');if(!CARDS||!CARDS.length){CARDS=[{id:'c0',bk:'raif',cur:'EUR',last:'7682'}];sv('lm_cards',CARDS)}
 let ACT=new Set(ld('lm_active')||CARDS.map(c=>c.id));
-let _al=ld('lm_ana');let ANA=new Set(_al&&_al.length&&_al.some(x=>CARDS.some(c=>c.id==x))?_al:CARDS.map(c=>c.id));
+let ANA=new Set(ld('lm_ana')||CARDS.map(c=>c.id));
 const cidOf=x=>x.cid||CARDS[0].id,inSel=x=>ACT.has(cidOf(x)),inAna=x=>ANA.has(cidOf(x));
 function anaLabel(){return CARDS.length<=1?'':ANA.size==CARDS.length?'Усі картки':ANA.size==1?BK[(CARDS.find(c=>ANA.has(c.id))||CARDS[0]).bk].n:`${ANA.size} з ${CARDS.length} карток`}
-function cardFilterSheet(){if(!CARDS.some(c=>ANA.has(c.id))){ANA=new Set(CARDS.map(c=>c.id));sv('lm_ana',[...ANA])}$('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet><div class=shd><b style="font-size:19px">Картки для аналітики</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="margin-top:10px">${CARDS.map(c=>{const bk=BK[c.bk],on=ANA.has(c.id);return`<button class="r rb" onclick="toggleCard('${c.id}');cardFilterSheet()"><i style="background:${bk.bg};color:${bk.tc};font-size:18px">${on?'✓':''}</i><div class=m><b>${bk.n}</b><s>${c.cur}${c.last?' · •••• '+c.last:''}</s></div></button>`}).join('')}</div></div></div>`}
+function cardFilterSheet(){$('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet><div class=shd><b style="font-size:19px">Картки для аналітики</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="margin-top:10px">${CARDS.map(c=>{const bk=BK[c.bk],on=ANA.has(c.id);return`<button class="r rb" onclick="toggleCard('${c.id}');cardFilterSheet()"><i style="background:${bk.bg};color:${bk.tc};font-size:18px">${on?'✓':''}</i><div class=m><b>${bk.n}</b><s>${c.cur}${c.last?' · •••• '+c.last:''}</s></div></button>`}).join('')}</div></div></div>`}
 let NBK=null;
 const MO=['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'],MN=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 const DEF=['Інше','⋯','#7a8ea0'],CT={'Продукти та супермаркети':['Продукти та супермаркети','🛒','#2fb673'],'Кафе та ресторани':['Кафе та ресторани','🍽️','#f08a24'],'Авіаквитки':['Подорожі','✈️','#1fb58f'],'Транспорт':['Транспорт','🚌','#5b7cfa'],'Краса та догляд':['Краса та догляд','💅','#d65db1'],'Спорт':['Спорт','🏋️','#e5534b'],'Кіно та театри':['Кіно та театри','🎬','#8b5cf6'],'Побутова техніка':['Техніка та зв’язок','📱','#3aa7d9'],'Інші витрати':DEF,'Комісії':['Комісії','%','#8f98a3'],'Поповнення':['Поповнення картки','⬇️','#2fb673'],'Обмін валюти':['Обмін валюти','💱','#c9a227'],'Грошові перекази':['На свої картки','💳','#e6399b']};
@@ -212,7 +212,7 @@ function delCard(){if(CARDS.length<=1)return;
  ACT=new Set([CARDS[CI].id]);sv('lm_active',[CARDS[CI].id]);
  ANA.delete(id);if(!ANA.size)ANA=new Set(CARDS.map(c=>c.id));sv('lm_ana',[...ANA]);RG=null;R()}
 function go(v){if(v=='s'){ANA=new Set([CARDS[CI].id]);sv('lm_ana',[...ANA]);RG=null}V=v;MSG='';SL=0;EXP=null;$('#scroll').scrollTop=0;R()}
-function toggleCard(id){const n=CARDS.filter(c=>ANA.has(c.id)).length;if(ANA.has(id)){if(n>1)ANA.delete(id)}else ANA.add(id);if(!CARDS.some(c=>ANA.has(c.id)))ANA=new Set([id]);sv('lm_ana',[...ANA]);RG=null;R()}
+function toggleCard(id){if(ANA.has(id))ANA.delete(id);else ANA.add(id);sv('lm_ana',[...ANA]);RG=null;R()}
 function cardSheet(){const banks=[['raif','Райф'],['mono','monobank'],['privat','Приват24'],['revolut','Revolut']];
  if(!NBK){$('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet><div class=shd><b style="font-size:19px">Новий банк</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="margin-top:10px">${banks.map(b=>`<button class="r rb" onclick="NBK='${b[0]}';cardSheet()"><i style="background:${BK[b[0]].bg}"></i><div class=m><b>${b[1]}</b></div></button>`).join('')}</div></div></div>`}
  else{$('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet><div class=shd><b style="font-size:19px">Валюта картки</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="margin-top:12px;display:flex;gap:10px">${['EUR','UAH','USD'].map(c=>`<button class=pill style="flex:1;text-align:center" onclick="addCard('${NBK}','${c}')">${SYM[c]} ${c}</button>`).join('')}</div></div></div>`}}
@@ -232,7 +232,7 @@ function opc(){const ds=DB.filter(inAna).map(x=>x.t.slice(0,10)).sort();if(!ds.l
  const[ya,ma]=ds[0].split('-').map(Number),[yb,mb]=ds[ds.length-1].split('-').map(Number),n=(yb-ya)*12+mb-ma;let h='';
  for(let i=0;i<=n;i++){const d=new Date(ya,ma-1+i,1),y=d.getFullYear(),m=d.getMonth(),fs=(d.getDay()+6)%7,nd=new Date(y,m+1,0).getDate();
   h+=`<div class=mn>${MN[m]} ${y}</div><div class=gr>${'<span></span>'.repeat(fs)}${Array.from({length:nd},(_,k)=>{const dt=`${y}-${String(m+1).padStart(2,'0')}-${String(k+1).padStart(2,'0')}`;return`<b data-d="${dt}" class="${inDates.has(dt)?'in':''}">${k+1}</b>`}).join('')}</div>`}
- $('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet style="padding-top:calc(44px + env(safe-area-inset-top,0px));padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))"><div class=shd><b style="font-size:19px">Період</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="color:var(--t2);font-size:14px;margin:2px 0 10px" id=pl></div><div class=wd><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>нд</span></div>${h}</div><button class=go onclick="RG={s:PK.s,e:PK.e||PK.s};$('#ov').innerHTML='';SL=0;R()">Показати</button></div>`;
+ $('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet style="padding-top:calc(64px + env(safe-area-inset-top,0px));padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))"><div class=shd><b style="font-size:19px">Період</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="color:var(--t2);font-size:14px;margin:2px 0 10px" id=pl></div><div class=wd><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>нд</span></div>${h}</div><button class=go onclick="RG={s:PK.s,e:PK.e||PK.s};$('#ov').innerHTML='';SL=0;R()">Показати</button></div>`;
  document.querySelectorAll('.gr b').forEach(c=>c.onclick=()=>{const d=c.dataset.d;if(!PK.s||PK.e){PK={s:d}}else{PK.e=d;if(PK.e<PK.s)[PK.s,PK.e]=[PK.e,PK.s]}pt()});pt()}
 function pt(){document.querySelectorAll('.gr b').forEach(c=>{const d=c.dataset.d;c.classList.toggle('on',d>=PK.s&&d<=(PK.e||PK.s))});$('#pl').textContent=PK.s?`${+PK.s.slice(8)} ${MO[PK.s.slice(5,7)-1]} – ${+(PK.e||PK.s).slice(8)} ${MO[(PK.e||PK.s).slice(5,7)-1]}`:''}
 try{const t=S.getItem('lm_th');if(t)document.documentElement.dataset.theme=t}catch(e){}

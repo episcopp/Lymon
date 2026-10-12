@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-12-1"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-12-2"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -140,13 +140,16 @@ async function up(fl){
  if(ACT.size!=1){MSG='Оберіть рівно одну картку на головному екрані, потім завантажте виписку';R();return}
  const cid=[...ACT][0],card=CARDS.find(c=>c.id==cid);
  if(!card||!(card.bk=='raif'||card.bk=='privat')){MSG='Поки розпізнаються виписки тільки Райффайзен (PDF) і Приват24 (Excel). Для інших банків картка лише для відображення';R();return}
- const bid=Date.now();let A=0,K=0;
+ const bid=Date.now();let A=0,K=0;const names=[];
  const conv=card.cur=='EUR'?x=>x:x=>({...x,a:x.a/(RATE[card.cur]||1)});
  try{for(const fi of fl){
+   names.push(fi.name);
    const buf=await fi.arrayBuffer();
    const raw=(card.bk=='raif'?await parsePdf(buf):await parsePrivat(buf)).map(conv);
    const[a,k]=imp(raw,bid,cid);A+=a;K+=k}
-  sv('lm_tx',DB);sv('lm_last',bid);RG=null;MSG=`Додано ${A}, пропущено ${K} (вже були)`}
+  sv('lm_tx',DB);sv('lm_last',bid);RG=null;
+  if(A>0){const BT=ld('lm_batches')||[];BT.unshift({id:bid,cid,names});sv('lm_batches',BT.slice(0,200))}
+  MSG=`Додано ${A}, пропущено ${K} (вже були)`}
  catch(e){MSG='Не вдалося прочитати файл. Перевірте формат виписки для цього банку.'}
  R()}
 function undo(){const b=ld('lm_last');DB=DB.filter(x=>x.b!=b);sv('lm_tx',DB);S.removeItem('lm_last');MSG='Останнє завантаження скасовано';R()}
@@ -159,6 +162,16 @@ function dedupe(){
  if(!cnt){MSG='Дублікатів не знайдено';R();return}
  if(!confirm(`Знайдено ${cnt} дублікат(ів) транзакцій (однакові картка, час, сума і залишок). Видалити їх?`))return;
  DB=DB.filter(x=>!rm.has(x.k));sv('lm_tx',DB);RG=null;MSG=`Видалено ${cnt} дублікат(ів)`;R()}
+function batchList(){
+ const meta={};(ld('lm_batches')||[]).forEach(b=>meta[b.id]=b);
+ const g={};
+ DB.forEach(x=>{if(x.b==null)return;const key=x.b+'|'+x.cid;(g[key]=g[key]||{b:x.b,cid:x.cid,n:0}).n++});
+ return Object.values(g).sort((a,b)=>b.b-a.b).map(e=>({...e,names:(meta[e.b]||{}).names||null}))}
+function filesSheet(){
+ const L=batchList();
+ $('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet><div class=shd><b style="font-size:19px">Завантажені виписки</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="margin-top:10px">${L.length?L.map(e=>{const c=CARDS.find(x=>x.id==e.cid),bk=c?BK[c.bk]:null,nm=bk?bk.n:'Картка видалена';const d=new Date(e.b),ds=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;return`<div class=r><i style="background:${bk?bk.bg:'#444'};color:${bk?bk.tc:'#fff'}">${bk?bk.ic:'?'}</i><div class=m><b>${nm}</b><s>${ds} · ${e.n} транз.${e.names&&e.names.length?' · '+esc(e.names.join(', ')):''}</s></div>${c?`<button class=ib onclick="replaceBatch(${e.b},'${e.cid}')" aria-label="Замінити" style="font-size:15px">🔁</button>`:''}<button class=ib onclick="delBatch(${e.b})" aria-label="Видалити">🗑</button></div>`}).join(''):'<div class=em>Ще немає завантажених виписок</div>'}</div></div></div>`}
+function delBatch(b){if(!confirm('Видалити цю виписку? Усі її транзакції будуть прибрані.'))return;DB=DB.filter(x=>x.b!=b);sv('lm_tx',DB);let BT=ld('lm_batches')||[];BT=BT.filter(x=>x.id!=b);sv('lm_batches',BT);RG=null;filesSheet()}
+function replaceBatch(b,cid){if(!confirm('Видалити цю виписку і завантажити нову замість неї?'))return;DB=DB.filter(x=>x.b!=b);sv('lm_tx',DB);let BT=ld('lm_batches')||[];BT=BT.filter(x=>x.id!=b);sv('lm_batches',BT);RG=null;ACT=new Set([cid]);sv('lm_active',[cid]);const i=CARDS.findIndex(c=>c.id==cid);if(i>=0)CI=i;closeSheet();V='h';SL=0;EXP=null;MSG='Виписку видалено. Натисніть «Завантажити виписку», щоб додати нову.';R()}
 const rng=()=>{if(RG)return RG;const d=DB.filter(inAna).map(x=>x.t.slice(0,10)).sort();return{s:d[0],e:d[d.length-1]}};
 const rlab=()=>{const{s,e}=rng();return s?`${+s.slice(8)} ${MO[s.slice(5,7)-1]} – ${+e.slice(8)} ${MO[e.slice(5,7)-1]} ${e.slice(0,4)}`:'Немає даних'};
 function row(x){const[n,ic,co]=ci(x);return`<div class=r><i style="background:${co}33">${ic}</i><div class=m><b>${esc(x.d)}</b><s>${n} · ${dm(x.t)}, ${x.t.slice(11,16)}${x.p?' · очікується':''}</s></div><div class=am><b class="${x.a>0&&!x.p?'g':''}">${f(x.a)}</b>${x.cb?`<s>+${x.cb.toFixed(2)} € кешбек</s>`:''}</div></div>`}
@@ -179,7 +192,7 @@ function R(){
  const a=$('#app'),l=srt(),last=ld('lm_last'),due=last&&Date.now()-last>30*864e5&&!DM;let h='';
  const bar=(t,b)=>`<div class=top><button class=ib onclick="go('h')" aria-label="Назад">←</button><b style="font-size:18px">${t}</b><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button></span></div>`;
  if(V=='h'){
-  h=`<div class=top><span></span><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button><button class=ib onclick="go('s')" aria-label="Аналітика"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="9" cy="6" rx="6" ry="2.5"/><path d="M3 6v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6M3 11v5c0 1.4 2.7 2.5 6 2.5"/><ellipse cx="16" cy="15" rx="5" ry="2"/><path d="M11 15v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4"/></svg></button></span></div>`;
+  h=`<div class=top><span></span><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button><button class=ib onclick="go('s')" aria-label="Аналітика"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="9" cy="6" rx="6" ry="2.5"/><path d="M3 6v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6M3 11v5c0 1.4 2.7 2.5 6 2.5"/><ellipse cx="16" cy="15" rx="5" ry="2"/><path d="M11 15v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4"/></svg></button><button class=ib onclick="filesSheet()" aria-label="Виписки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6 2.5h8l4 4V21a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 21V3a.5.5 0 0 1 .5-.5z"/><path d="M14 2.5V6a.5.5 0 0 0 .5.5H18"/><path d="M8.5 12h7M8.5 15.5h7M8.5 8.5h3"/></svg></button></span></div>`;
   if(due)h+=`<button class=pill onclick="DM=true;R()"><b>Час оновити аналітику.</b> Завантажте, будь ласка, виписку за місяць.</button>`;
   if(MSG)h+=`<div class=pill>${MSG}</div>`;
   h+=`<div class=cwrap id=cw ontouchstart="tS(event)" ontouchmove="tM(event)" ontouchend="tE(event)">${cardHTML()}</div>${CARDS.length>1?`<div class=dots id=dots>${CARDS.map((_,j)=>`<u class="${j==CI?'on':''}"></u>`).join('')}</div>`:''}<button class="pill actv" onclick="listSheet()">${CARDS.length>1?'Усі картки':CARDS[CI].bk?BK[CARDS[CI].bk].n:'Усі картки'} ›</button><div class=qrow><div><button onclick="NBK=null;cardSheet()">＋</button><span>Додати<br>картку</span></div>${CARDS.length>1?`<div><button onclick="delCard()">🗑</button><span>Видалити<br>картку</span></div>`:''}</div>${opsHTML()}${last?`<button class=lk onclick="undo()">Скасувати останнє завантаження</button>`:''}${DB.length?`<button class=lk onclick="dedupe()">Перевірити на дублікати</button>`:''}<div style="text-align:center;font-size:11px;color:var(--t2);opacity:.5;margin-top:18px">build ${document.documentElement.dataset.build||'?'}</div><label class=fab><input type=file accept="${CARDS[CI].bk=='privat'?'.xlsx':'.pdf'}" multiple hidden onchange="up(this.files);this.value=''">＋ Завантажити виписку</label>`}

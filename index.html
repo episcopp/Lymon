@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-13-4"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-13-5"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -122,7 +122,12 @@ function imp(list,bid,cid){
  DB.forEach(x=>{if(typeof x.k=='string'&&x.k.endsWith('#fee'))return;const p=fpOf(x);haveCount[p]=(haveCount[p]||0)+1});
  const seen={};
  list.forEach(x=>{
-  if(x.pre&&(real.some(r=>r.snd==x.snd&&near(r.t,x.t))||DB.some(r=>r.snd&&r.snd==x.snd&&near(r.t,x.t)))){skip++;return}
+  if(x.pre){
+   if(real.some(r=>r.snd==x.snd&&near(r.t,x.t))){skip++;return}
+   const dup=DB.find(r=>r.snd&&r.snd==x.snd&&near(r.t,x.t));
+   if(dup){
+    if(dup.c=='Інше'&&x.c&&x.c!='Інше'){dup.c=x.c;dup.d=x.d;if(x.bal!=null)dup.bal=x.bal;dup.p=undefined}
+    skip++;return}}
   const p=[cid,x.t,x.a.toFixed(2)].join('|'),n=seen[p]=(seen[p]??-1)+1;
   if(n<(haveCount[p]||0)){skip++;return}
   const k=p+'#'+n;
@@ -170,6 +175,7 @@ function dedupe(fromSheet){
  preGroups.forEach(g=>{
   if(g.length<2)return;
   const keep=g.find(x=>x.c&&x.c!='Інше')||g[0];
+  if(keep.c&&keep.c!='Інше')keep.p=undefined;
   g.forEach(x=>{if(x!==keep){rm.add(x.k);cnt++;if(ex.length<5)ex.push(x)}})});
  if(!cnt){if(fromSheet)alert('Дублікатів не знайдено');else{MSG='Дублікатів не знайдено';R()}return}
  const prev=ex.map(x=>`${x.t.slice(8,10)}.${x.t.slice(5,7)} ${f(x.a)}`).join(', ');

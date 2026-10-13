@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-13-3"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-13-4"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -122,7 +122,7 @@ function imp(list,bid,cid){
  DB.forEach(x=>{if(typeof x.k=='string'&&x.k.endsWith('#fee'))return;const p=fpOf(x);haveCount[p]=(haveCount[p]||0)+1});
  const seen={};
  list.forEach(x=>{
-  if(x.pre&&(real.some(r=>r.snd==x.snd&&near(r.t,x.t))||DB.some(r=>!r.p&&r.snd==x.snd&&near(r.t,x.t)))){skip++;return}
+  if(x.pre&&(real.some(r=>r.snd==x.snd&&near(r.t,x.t))||DB.some(r=>r.snd&&r.snd==x.snd&&near(r.t,x.t)))){skip++;return}
   const p=[cid,x.t,x.a.toFixed(2)].join('|'),n=seen[p]=(seen[p]??-1)+1;
   if(n<(haveCount[p]||0)){skip++;return}
   const k=p+'#'+n;
@@ -163,9 +163,17 @@ function dedupe(fromSheet){
   if(typeof x.k=='string'&&x.k.endsWith('#fee'))return;
   const fp=fpOf(x);
   if(seen.has(fp)){rm.add(x.k);rm.add(x.k+'#fee');cnt++;if(ex.length<5)ex.push(x)}else seen.add(fp)});
+ const preGroups=[];
+ DB.filter(x=>x.p&&x.snd&&!rm.has(x.k)).forEach(x=>{
+  const g=preGroups.find(g=>g[0].cid==x.cid&&g[0].snd==x.snd&&g.some(m=>near(m.t,x.t)));
+  if(g)g.push(x);else preGroups.push([x])});
+ preGroups.forEach(g=>{
+  if(g.length<2)return;
+  const keep=g.find(x=>x.c&&x.c!='Інше')||g[0];
+  g.forEach(x=>{if(x!==keep){rm.add(x.k);cnt++;if(ex.length<5)ex.push(x)}})});
  if(!cnt){if(fromSheet)alert('Дублікатів не знайдено');else{MSG='Дублікатів не знайдено';R()}return}
  const prev=ex.map(x=>`${x.t.slice(8,10)}.${x.t.slice(5,7)} ${f(x.a)}`).join(', ');
- if(!confirm(`Знайдено ${cnt} дублікат(ів) — однакові картка, дата/час і сума, наприклад: ${prev}${cnt>ex.length?', …':''}. Видалити їх?`))return;
+ if(!confirm(`Знайдено ${cnt} дублікат(ів) — однакові картка, дата/час і сума (або операції, що очікуються, від того самого відправника в межах ~2 діб), наприклад: ${prev}${cnt>ex.length?', …':''}. Видалити їх?`))return;
  DB=DB.filter(x=>!rm.has(x.k));sv('lm_tx',DB);RG=null;MSG=`Видалено ${cnt} дублікат(ів)`;R();if(fromSheet)filesSheet()}
 function batchList(){
  const meta={};(ld('lm_batches')||[]).forEach(b=>meta[b.id]=b);
@@ -197,7 +205,7 @@ const $=s=>document.querySelector(s);
 const LOGO='<div class=lg><svg viewBox="0 0 24 24"><path d="M4 4l16 16M20 4L4 20" stroke="#111" stroke-width="5" fill="none"/></svg>Raiffeisen Bank</div>';
 function R(){
  const a=$('#app'),l=srt(),last=ld('lm_last'),due=last&&Date.now()-last>30*864e5&&!DM;let h='';
- const bar=(t,b)=>`<div class=top><button class=ib onclick="go('h')" aria-label="Назад">←</button><b style="font-size:18px">${t}</b><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button></span></div>`;
+ const bar=(t,b)=>`<div style="position:sticky;top:0;z-index:2;background:rgba(20,22,30,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);margin:0 -22px 0 -16px;padding:0 22px 0 16px"><div class=top><button class=ib onclick="go('h')" aria-label="Назад">←</button><b style="font-size:18px">${t}</b><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button></span></div></div>`;
  if(V=='h'){
   h=`<div class=top><span></span><span style="display:flex;align-items:center"><button class=ib onclick="cyc()" aria-label="Валюта" style="font-size:15px;font-weight:700">${SYM[CUR]}</button><button class=ib onclick="th()" aria-label="Тема">◐</button><button class=ib onclick="go('s')" aria-label="Аналітика"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><ellipse cx="9" cy="6" rx="6" ry="2.5"/><path d="M3 6v5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6M3 11v5c0 1.4 2.7 2.5 6 2.5"/><ellipse cx="16" cy="15" rx="5" ry="2"/><path d="M11 15v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4"/></svg></button></span></div>`;
   if(due)h+=`<button class=pill onclick="DM=true;R()"><b>Час оновити аналітику.</b> Завантажте, будь ласка, виписку за місяць.</button>`;
@@ -264,7 +272,7 @@ function opc(){const ds=DB.filter(inAna).map(x=>x.t.slice(0,10)).sort();if(!ds.l
  const[ya,ma]=ds[0].split('-').map(Number),[yb,mb]=ds[ds.length-1].split('-').map(Number),n=(yb-ya)*12+mb-ma;let h='';
  for(let i=0;i<=n;i++){const d=new Date(ya,ma-1+i,1),y=d.getFullYear(),m=d.getMonth(),fs=(d.getDay()+6)%7,nd=new Date(y,m+1,0).getDate();
   h+=`<div class=mn>${MN[m]} ${y}</div><div class=gr>${'<span></span>'.repeat(fs)}${Array.from({length:nd},(_,k)=>{const dt=`${y}-${String(m+1).padStart(2,'0')}-${String(k+1).padStart(2,'0')}`,s=inSums[dt];return`<b data-d="${dt}">${k+1}${s?`<i>+${cf(s)}</i>`:''}</b>`}).join('')}</div>`}
- $('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet style="height:76%;padding:0;display:flex;flex-direction:column;overflow:hidden"><div style="flex:0 0 auto;background:var(--sh);padding:calc(90px + env(safe-area-inset-top,0px)) 16px 0"><div class=shd><b style="font-size:19px">Період</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="color:var(--t2);font-size:14px;margin:2px 0 10px" id=pl></div><div class=wd><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>нд</span></div></div><div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px calc(90px + env(safe-area-inset-bottom,0px))">${h}</div></div><button class=go onclick="RG={s:PK.s,e:PK.e||PK.s};$('#ov').innerHTML='';SL=0;R()">Показати</button></div>`;
+ $('#ov').innerHTML=`<div class=ov onclick="if(event.target==this)closeSheet()"><div class=sheet style="height:76%;padding:0;display:flex;flex-direction:column;overflow:hidden"><div style="flex:0 0 auto;background:var(--sh);padding:calc(20px + env(safe-area-inset-top,0px)) 16px 0"><div class=shd><b style="font-size:19px">Період</b><button class=ib onclick="closeSheet()" aria-label="Закрити">✕</button></div><div style="color:var(--t2);font-size:14px;margin:2px 0 10px" id=pl></div><div class=wd><span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>нд</span></div></div><div style="flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px calc(90px + env(safe-area-inset-bottom,0px))">${h}</div></div><button class=go onclick="RG={s:PK.s,e:PK.e||PK.s};$('#ov').innerHTML='';SL=0;R()">Показати</button></div>`;
  document.querySelectorAll('.gr b').forEach(c=>c.onclick=()=>{const d=c.dataset.d;if(!PK.s||PK.e){PK={s:d}}else{PK.e=d;if(PK.e<PK.s)[PK.s,PK.e]=[PK.e,PK.s]}pt()});pt()}
 function pt(){document.querySelectorAll('.gr b').forEach(c=>{const d=c.dataset.d;c.classList.toggle('on',d>=PK.s&&d<=(PK.e||PK.s))});$('#pl').textContent=PK.s?`${+PK.s.slice(8)} ${MO[PK.s.slice(5,7)-1]} – ${+(PK.e||PK.s).slice(8)} ${MO[(PK.e||PK.s).slice(5,7)-1]}`:''}
 try{const t=S.getItem('lm_th');if(t)document.documentElement.dataset.theme=t}catch(e){}

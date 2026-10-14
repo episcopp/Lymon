@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-13-5"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-14-1"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -100,7 +100,9 @@ async function parsePdf(buf){
  const pdf=await pdfjsLib.getDocument({data:buf}).promise,out=[];
  for(let p=1;p<=pdf.numPages;p++){
   const pg=await pdf.getPage(p),W=pg.view[2],tc=await pg.getTextContent();
-  const its=tc.items.filter(i=>i.str.trim()).map(i=>({x:i.transform[4]/W,r:(i.transform[4]+i.width)/W,y:i.transform[5],s:i.str.trim()}));
+  let its=tc.items.filter(i=>i.str.trim()).map(i=>({x:i.transform[4]/W,r:(i.transform[4]+i.width)/W,y:i.transform[5],s:i.str.trim()}));
+  const foot=its.filter(i=>/^Довідка видана/.test(i.s)||/^\d+\s*\/\s*\d+$/.test(i.s));
+  if(foot.length){const fy=Math.max(...foot.map(i=>i.y));its=its.filter(i=>i.y>fy+2)}
   if(its.some(i=>i.s.startsWith('ІПН')))continue;
   const st=its.filter(i=>i.x<.11&&/^\d\d\.\d\d\.\d{4}$/.test(i.s)).sort((a,b)=>b.y-a.y);
   st.forEach((s,n)=>{
@@ -110,8 +112,8 @@ async function parsePdf(buf){
    const tm=rw.d.find(v=>/^\d\d:\d\d:\d\d$/.test(v));if(!tm)return;
    const[dd,mm,yy]=s.s.split('.'),det=rw.t.join(' ').replace(/\s*Картка:.*$/,'').replace(/\s+/g,' ');
    const ix=det.indexOf(':'),a=rw.a.map(num).find(v=>v!==null);if(a==null)return;
-   const cb=rw.c.map(num).find(v=>v!==null)||0,bal=num(rw.b.join('')),d=det.slice(ix+1).trim(),m=/FROM:([^,]+)/i.exec(det),ot=rw.o.join(' ');
-   out.push({t:`${yy}-${mm}-${dd}T${tm}`,a,d,c:det.slice(0,ix).trim(),cb:a<0?cb:0,fee:a>0?cb:0,bal,o:/UAH|USD|PLN|GBP/.test(ot)?ot:'',snd:m?m[1].trim():'',pre:bal==null&&a>0&&!!m})})}
+   const cb=rw.c.map(num).find(v=>v!==null)||0,comm=rw.f.map(num).find(v=>v!==null)||0,bal=num(rw.b.join('')),d=det.slice(ix+1).trim(),m=/FROM:([^,]+)/i.exec(det),ot=rw.o.join(' ');
+   out.push({t:`${yy}-${mm}-${dd}T${tm}`,a,d,c:det.slice(0,ix).trim(),cb:a<0?cb:0,fee:a>0?(comm||cb):0,bal,o:/UAH|USD|PLN|GBP/.test(ot)?ot:'',snd:m?m[1].trim():'',pre:bal==null&&a>0&&!!m})})}
  return out}
 const near=(a,b)=>Math.abs(new Date(a)-new Date(b))<1728e5;
 const fpOf=x=>[x.cid,x.t,x.a.toFixed(2)].join('|');

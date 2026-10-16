@@ -1,4 +1,4 @@
-<!doctype html><html lang="uk" data-build="2026-10-14-2"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
+<!doctype html><html lang="uk" data-build="2026-10-15-1"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#1f3468"><title>Лимон</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -108,7 +108,8 @@ async function parsePdf(buf){
   let its=tc.items.filter(i=>i.str.trim()).map(i=>({x:i.transform[4]/W,r:(i.transform[4]+i.width)/W,y:i.transform[5],s:i.str.trim()}));
   const foot=its.filter(i=>/^Довідка видана/.test(i.s)||/^\d+\s*\/\s*\d+$/.test(i.s));
   if(foot.length){const fy=Math.max(...foot.map(i=>i.y));its=its.filter(i=>i.y>fy+2)}
-  if(its.some(i=>i.s.startsWith('ІПН')))continue;
+  const info=its.filter(i=>/^ІПН/.test(i.s));
+  if(info.length){const iy=Math.max(...info.map(i=>i.y));its=its.filter(i=>i.y>iy+30)}
   const st=its.filter(i=>i.x<.11&&/^\d\d\.\d\d\.\d{4}$/.test(i.s)).sort((a,b)=>b.y-a.y);
   st.forEach((s,n)=>{
    const lo=n+1<st.length?st[n+1].y+6:-1e9,rw={d:[],e:[],t:[],m:[],a:[],o:[],f:[],c:[],b:[]};
